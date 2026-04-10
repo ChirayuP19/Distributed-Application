@@ -13,3 +13,14 @@ spring:
     database: POSTGRESQL
 server:
   port: 8052
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

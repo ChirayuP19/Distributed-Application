@@ -53,8 +53,8 @@ public class CartItemServiceImpl implements CartItemService {
     @Transactional
     public void removeItem(String userId, Long productId) {
         Optional<CartItem> existsCartItem = cartItemRepository.findByUserIdAndProductId(userId, productId);
-        if(existsCartItem.isEmpty())
-            throw new IllegalArgumentException("user Cart have not product with Id::"+productId);
+        if (existsCartItem.isEmpty())
+            throw new IllegalArgumentException("user Cart have not product with Id::" + productId);
         cartItemRepository.deleteByUserIdAndProductId(userId, productId);
     }
 
