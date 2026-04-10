@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: cart-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order
+    username: chirayu
+    password: chirayu
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: POSTGRESQL
+server:
+  port: 8052
