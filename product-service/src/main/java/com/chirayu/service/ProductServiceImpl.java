@@ -160,4 +160,9 @@ public class ProductServiceImpl implements ProductService {
     public Boolean isExists(Long productId) {
         return productRepository.findById(productId).isPresent();
     }
+
+    @Override
+    public BigDecimal getProductPriceById(Long productId) {
+        return productRepository.findProductPriceByProductId(productId);
+    }
 }

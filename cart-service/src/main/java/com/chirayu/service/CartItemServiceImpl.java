@@ -3,42 +3,49 @@ package com.chirayu.service;
 import com.chirayu.dto.CartItemRequestDto;
 import com.chirayu.dto.CartItemResponseDto;
 import com.chirayu.entity.CartItem;
+import com.chirayu.feignclients.ProductFeignClient;
+import com.chirayu.feignclients.UserFeignClient;
 import com.chirayu.repositoty.CartItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
 public class CartItemServiceImpl implements CartItemService {
 
     private final CartItemRepository cartItemRepository;
+    private final UserFeignClient userFeignClient;
+    private final ProductFeignClient productFeignClient;
 
     @Override
     public CartItemResponseDto addToCart(CartItemRequestDto requestDto) {
 
-        // TODO : user api have to call for checking user is valid or not.
-        //TODO : product api have to call for checking product id is valid or not.
-
+        Boolean userExistById = userFeignClient.existById(requestDto.getUserId());
+        if (Boolean.FALSE.equals(userExistById))
+            throw new IllegalArgumentException("User does not exists in Database with given ID:: "+requestDto.getUserId());
+        Boolean existById = productFeignClient.isExistById(requestDto.getProductId());
+        if(Boolean.FALSE.equals(existById))
+            throw new IllegalArgumentException("Product does not exists in Database");
         Optional<CartItem> existingItem = cartItemRepository.findByUserIdAndProductId(requestDto.getUserId(), requestDto.getProductId());
         CartItem savedItem;
-
+        CartItem cartItem;
         if (existingItem.isPresent()) {
-            CartItem cartItem = existingItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() == null ? 0 : cartItem.getQuantity() + requestDto.getQuantity());
-            savedItem = cartItemRepository.save(cartItem);
+            cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() == null ? requestDto.getQuantity() : cartItem.getQuantity() + requestDto.getQuantity());
         } else {
-            CartItem cartItem = new CartItem();
+            cartItem = new CartItem();
             BeanUtils.copyProperties(requestDto, cartItem);
 
-            savedItem = cartItemRepository.save(cartItem);
         }
+        savedItem = cartItemRepository.save(cartItem);
         return mapToResponseDto(savedItem);
     }
 
@@ -46,7 +53,7 @@ public class CartItemServiceImpl implements CartItemService {
     public List<CartItemResponseDto> getUserCart(String userId) {
         return cartItemRepository.findByUserId(userId)
                 .stream().map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -60,7 +67,6 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public CartItemResponseDto updateQuantity(CartItemRequestDto requestDto) {
-        //TODO : productId and UserId required.
         CartItem cartItem = cartItemRepository.findByUserIdAndProductId(requestDto.getUserId(), requestDto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Item is not in the Cart"));
         Integer newQuantity = requestDto.getQuantity();
@@ -80,12 +86,16 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     public CartItemResponseDto mapToResponseDto(CartItem dbCartItem) {
+        BigDecimal price = productFeignClient.productPriceById(dbCartItem.getProductId());
+        BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(dbCartItem.getQuantity()));
         return CartItemResponseDto.builder()
                 .id(dbCartItem.getId())
                 .userId(dbCartItem.getUserId())
                 .productId(dbCartItem.getProductId())
                 .quantity(dbCartItem.getQuantity())
-                .createdAt(LocalDateTime.now())
+                .createdAt(dbCartItem.getCreatedAt())
+                .price(price)
+                .totalPrice(totalPrice)
                 .build();
     }
 }

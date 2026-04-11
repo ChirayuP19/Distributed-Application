@@ -35,4 +35,10 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest userRequest){
         return userService.update(userId,userRequest);
     }
+
+    @GetMapping("/exist/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean existById(@PathVariable("userId") String userId){
+        return userService.existsByUserId(userId);
+    }
 }

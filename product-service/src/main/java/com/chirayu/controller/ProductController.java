@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.math.BigDecimal;
+
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -56,7 +57,7 @@ public class ProductController {
         return productService.findAllProduct(page,size,sortBy,sortDir);
     }
 
-    @PostMapping("upload-file")
+    @PostMapping("/upload-file")
     @ResponseStatus(HttpStatus.CREATED)
     public String uploadPorudctsViaFile(@RequestParam("file")MultipartFile file){
 
@@ -64,9 +65,15 @@ public class ProductController {
         return "File uploaded and data saved successfully!";
     }
 
-    @GetMapping("exits/{productId}")
+    @GetMapping("/exits/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public Boolean isExistById(@PathVariable("productId") Long productId){
         return productService.isExists(productId);
+    }
+
+    @GetMapping("/price/{productId}")
+    @ResponseStatus(HttpStatus.OK)
+    public BigDecimal productPriceById(@PathVariable("productId")Long productId){
+        return productService.getProductPriceById(productId);
     }
 }

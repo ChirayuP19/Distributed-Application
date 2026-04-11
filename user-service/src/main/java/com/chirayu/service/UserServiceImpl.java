@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -95,7 +97,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User is not found with ID:: " + userId));
+        userRepository.delete(user);
+    }
 
+    @Override
+    public Boolean existsByUserId(String userId) {
+        return userRepository.existsByUserId(userId);
     }
 
 }
