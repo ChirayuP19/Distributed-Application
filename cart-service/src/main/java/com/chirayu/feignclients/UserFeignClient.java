@@ -1,5 +1,6 @@
 package com.chirayu.feignclients;
 
+import com.chirayu.dto.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,7 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UserFeignClient {
 
     @GetMapping("/exist/{userId}")
-    public Boolean existById(@PathVariable("userId") String userId);
+     Boolean existById(@PathVariable("userId") String userId);
 
+    @GetMapping("/{userId}")
+    UserDto findById(@PathVariable("userId") String userId);
 
 }
