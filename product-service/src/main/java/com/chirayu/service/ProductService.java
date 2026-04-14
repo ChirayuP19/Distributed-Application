@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface ProductService {
 
@@ -20,4 +21,5 @@ public interface ProductService {
     void saveProductsFromFile(MultipartFile file);
     Boolean isExists(Long productId);
     BigDecimal getProductPriceById(Long productId);
+    List<ProductResponseDto> getProductsByIds(List<Long> productIds);
 }

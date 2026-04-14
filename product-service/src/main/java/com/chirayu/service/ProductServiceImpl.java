@@ -165,4 +165,11 @@ public class ProductServiceImpl implements ProductService {
     public BigDecimal getProductPriceById(Long productId) {
         return productRepository.findProductPriceByProductId(productId);
     }
+
+    @Override
+    public List<ProductResponseDto> getProductsByIds(List<Long> productIds) {
+        return productRepository.findAllByIdIn(productIds)
+                .stream().map(productMapper::toDto)
+                .toList();
+    }
 }

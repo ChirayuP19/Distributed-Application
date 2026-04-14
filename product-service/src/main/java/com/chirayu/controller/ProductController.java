@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @RestController
@@ -75,5 +76,11 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     public BigDecimal productPriceById(@PathVariable("productId")Long productId){
         return productService.getProductPriceById(productId);
+    }
+
+    @PostMapping("/batch")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ProductResponseDto> findAllByIds(@RequestBody List<Long> ids){
+        return productService.getProductsByIds(ids);
     }
 }
