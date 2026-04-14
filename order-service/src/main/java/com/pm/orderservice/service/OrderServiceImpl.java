@@ -10,6 +10,10 @@ import com.pm.orderservice.mapper.OrderItemMapper;
 import com.pm.orderservice.model.Order;
 import com.pm.orderservice.model.OrderItem;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -47,6 +51,24 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         cartItemFeignClient.clearUserCart(requestDTO.getUserId());
         return mapToOrderResponse(savedOrder);
+    }
+
+    @Override
+    public OrderResponseDTO updateStatus(Long orderId, OrderStatus orderStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("order not found with ID:: " + orderId));
+        validateStatusTransition(OrderStatus.valueOf(order.getStatus().toUpperCase()), orderStatus);
+        order.setStatus(orderStatus.toString());
+        return mapToOrderResponse(orderRepository.save(order));
+    }
+
+    @Override
+    public Page<OrderResponseDTO> getAllOrders(int page, int size, String sortBy, String direction) {
+
+        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() :
+                Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page,size,sort);
+        return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
     }
 
     private static Order createOrder(PlaceOrderRequestDTO requestDTO, BigDecimal totalPrice, List<OrderItem> orderItems) {
@@ -102,6 +124,7 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderItems;
     }
+
     private OrderResponseDTO mapToOrderResponse(Order savedOrder) {
 
         List<OrderItemResponseDTO> itemDTOS = savedOrder.getItems().stream()
@@ -109,11 +132,35 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         return OrderResponseDTO.builder()
-               .orderId(savedOrder.getId())
-               .userId(savedOrder.getUserId())
-               .status(savedOrder.getStatus())
-               .totalPrice(savedOrder.getTotalPrice())
-               .orderItems(itemDTOS)
-               .build();
+                .orderId(savedOrder.getId())
+                .userId(savedOrder.getUserId())
+                .status(savedOrder.getStatus())
+                .totalPrice(savedOrder.getTotalPrice())
+                .orderItems(itemDTOS)
+                .build();
+    }
+
+    private void validateStatusTransition(OrderStatus current, OrderStatus next) {
+
+        if (current == OrderStatus.DELIVERED || current == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Cannot update order. Already in final state: " + current);
+        }
+
+        switch (current) {
+            case PLACED:
+                if (next == OrderStatus.DELIVERED) {
+                    throw new RuntimeException("Invalid transition: PLACED → DELIVERED");
+                }
+                break;
+
+            case SHIPPED:
+                if (next == OrderStatus.PLACED) {
+                    throw new RuntimeException("Invalid transition: SHIPPED → PLACED");
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 }
