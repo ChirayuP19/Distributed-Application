@@ -1,8 +1,7 @@
 package com.pm.shippingservice.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -10,11 +9,14 @@ import java.time.LocalDateTime;
 @Table(name = "shipping_info")
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ShippingInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
-    private  Long orderId;
+    private Long id;
+    private Long orderId;
     private String shippingMethod;
     private LocalDateTime shippingAt;
     private LocalDateTime deliveryAt;

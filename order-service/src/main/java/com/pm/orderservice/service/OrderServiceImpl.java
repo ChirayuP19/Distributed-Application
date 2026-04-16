@@ -9,7 +9,6 @@ import com.pm.orderservice.feignClients.UserFeignClient;
 import com.pm.orderservice.mapper.OrderItemMapper;
 import com.pm.orderservice.model.Order;
 import com.pm.orderservice.model.OrderItem;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,8 +47,8 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = calculateTotalPrice(fetchCartItems);
         List<OrderItem> orderItems = buildOrderItems(fetchCartItems);
         orderItems.forEach(orderItem ->
-                productFeignClient.reduceStockQuantity(orderItem.getProductId(),orderItem.getQuantity()
-        ));
+                productFeignClient.reduceStockQuantity(orderItem.getProductId(), orderItem.getQuantity()
+                ));
         Order order = createOrder(requestDTO, totalPrice, orderItems);
         Order savedOrder = orderRepository.save(order);
         cartItemFeignClient.clearUserCart(requestDTO.getUserId());
@@ -67,10 +66,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderResponseDTO> getAllOrders(int page, int size, String sortBy, String direction) {
-
         Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() :
                 Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page,size,sort);
+        Pageable pageable = PageRequest.of(page, size, sort);
         return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
     }
 
@@ -152,19 +150,19 @@ public class OrderServiceImpl implements OrderService {
     private void validateStatusTransition(OrderStatus current, OrderStatus next) {
 
         if (current == OrderStatus.DELIVERED || current == OrderStatus.CANCELLED) {
-            throw new RuntimeException("Cannot update order. Already in final state: " + current);
+            throw new IllegalArgumentException("Cannot update order. Already in final state: " + current);
         }
 
         switch (current) {
             case PLACED:
                 if (next == OrderStatus.DELIVERED) {
-                    throw new RuntimeException("Invalid transition: PLACED → DELIVERED");
+                    throw new IllegalArgumentException("Invalid transition: PLACED → DELIVERED");
                 }
                 break;
 
             case SHIPPED:
                 if (next == OrderStatus.PLACED) {
-                    throw new RuntimeException("Invalid transition: SHIPPED → PLACED");
+                    throw new IllegalArgumentException("Invalid transition: SHIPPED → PLACED");
                 }
                 break;
 
