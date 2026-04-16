@@ -4,9 +4,13 @@ spring:
   data:
     mongodb:
       uri: mongodb://chirayu:chirayu@localhost:27017/userdb?authSource=admin
+  redis:
+    host: localhost
+    port: 6379
+  cache:
+    type: redis
 server:
   port: 8050
-
 eureka:
   client:
     fetch-registry: true

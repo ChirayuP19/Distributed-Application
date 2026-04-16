@@ -12,6 +12,8 @@ import com.chirayu.repository.CategoryRepository;
 import com.chirayu.repository.ProductRepository;
 import com.opencsv.CSVReader;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +39,10 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
 
     @Override
+    @Cacheable(value = "product",key = "#productId")
     public ProductResponseDto findByProductId(Long productId) {
         return productRepository.findById(productId)
-                .map(productMapper::toDto)
+                .map(this::toDtoResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID:: " + productId));
     }
 
@@ -83,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CachePut(value = "product", key = "#productId")
     public ProductResponseDto updateProductDetails(Long productId, ProductRequestDto requestDto) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -179,5 +183,19 @@ public class ProductServiceImpl implements ProductService {
         if (updatedRow == 0) {
             throw new RuntimeException("Out of stock or product not found with ID: " + productId);
         }
+    }
+
+    private ProductResponseDto toDtoResponse(Product product) {
+        return ProductResponseDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .categoryId(product.getCategory().getId() !=null ? product.getCategory().getId() : null)
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .stock(product.getStock())
+                .updateAt(product.getUpdateAt())
+                .createAt(product.getCreateAt())
+                .updateAt(product.getUpdateAt())
+                .build();
     }
 }
