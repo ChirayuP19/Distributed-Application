@@ -61,6 +61,18 @@ services:
     networks:
       - custom-bridge
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - custom-bridge
+
 
 networks:
   custom-bridge:
@@ -69,4 +81,5 @@ networks:
 volumes:
   mongo-data:
   postgres-data:
+  redis-data:
 

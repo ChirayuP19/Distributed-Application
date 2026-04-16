@@ -13,11 +13,10 @@ import com.chirayu.models.User;
 import com.chirayu.repository.CredentialRepository;
 import com.chirayu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +29,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto save(CreateUserRequest request) {
-        if(userRepository.existsByEmail(request.getUserDto().getEmailAddress())){
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(request.getUserDto().getEmailAddress()))) {
             throw new DuplicateResourceException("Email is already used");
         }
         User user = userMapper.toEntity(request.getUserDto());
         User saveUser = userRepository.save(user);
         Credential credential = credentialMapper.toEntity(request.getCredentialDto());
-        if(credential.getRole()==null){
+        if (credential.getRole() == null) {
             credential.setRole(RoleBaseAuthority.USER);
         }
         credential.setUserId(saveUser.getUserId());
@@ -47,14 +46,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#userID")
     public UserDto findById(String userID) {
         return userRepository.findById(userID)
                 .map(userMapper::toDto)
-                .orElseThrow(()->new ResourceNotFoundException("User not found with ID:: "+userID));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID:: " + userID));
     }
 
     @Override
     @Transactional
+    @CachePut(value = "user", key = "#result.userId")
     public UserDto update(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
@@ -64,30 +65,30 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Credential not found for userID:: " + userId));
 
 
-        if(request.getFirstName()!=null){
+        if (request.getFirstName() != null) {
             user.setFirstName(request.getFirstName());
         }
-        if(request.getLastName()!=null){
+        if (request.getLastName() != null) {
             user.setLastName(request.getLastName());
         }
-        if(request.getEmail()!=null){
+        if (request.getEmail() != null) {
             boolean existByEmailId = userRepository.findByEmail(request.getEmail())
                     .isPresent();
-            if(existByEmailId && !user.getEmail().equals(request.getEmail())){
-                throw new DuplicateResourceException("Email already in use: "+request.getEmail());
+            if (existByEmailId && !user.getEmail().equals(request.getEmail())) {
+                throw new DuplicateResourceException("Email already in use: " + request.getEmail());
             }
             user.setEmail(request.getEmail());
         }
-        if(request.getPhone()!=null){
+        if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
         }
-        if(request.getUsername()!=null){
+        if (request.getUsername() != null) {
             credential.setUsername(request.getUsername());
         }
-        if(request.getPassword()!=null){
+        if (request.getPassword() != null) {
             credential.setPassword(request.getPassword());
         }
-        if (request.getRole()!=null){
+        if (request.getRole() != null) {
             credential.setRole(request.getRole());
         }
         userRepository.save(user);
