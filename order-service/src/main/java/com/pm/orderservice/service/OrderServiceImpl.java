@@ -9,6 +9,7 @@ import com.pm.orderservice.feignClients.UserFeignClient;
 import com.pm.orderservice.mapper.OrderItemMapper;
 import com.pm.orderservice.model.Order;
 import com.pm.orderservice.model.OrderItem;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +47,9 @@ public class OrderServiceImpl implements OrderService {
         }
         BigDecimal totalPrice = calculateTotalPrice(fetchCartItems);
         List<OrderItem> orderItems = buildOrderItems(fetchCartItems);
-
+        orderItems.forEach(orderItem ->
+                productFeignClient.reduceStockQuantity(orderItem.getProductId(),orderItem.getQuantity()
+        ));
         Order order = createOrder(requestDTO, totalPrice, orderItems);
         Order savedOrder = orderRepository.save(order);
         cartItemFeignClient.clearUserCart(requestDTO.getUserId());
@@ -69,6 +72,12 @@ public class OrderServiceImpl implements OrderService {
                 Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page,size,sort);
         return orderRepository.findAll(pageable).map(this::mapToOrderResponse);
+    }
+
+    @Override
+    public OrderResponseDTO getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("order not found with ID:: " + orderId));
+        return mapToOrderResponse(order);
     }
 
     private static Order createOrder(PlaceOrderRequestDTO requestDTO, BigDecimal totalPrice, List<OrderItem> orderItems) {

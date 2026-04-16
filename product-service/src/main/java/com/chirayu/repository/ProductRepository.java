@@ -1,7 +1,9 @@
 package com.chirayu.repository;
 
 import com.chirayu.entity.Product;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,4 +19,14 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Query("SELECT p.price FROM Product p WHERE p.id = :id")
     BigDecimal findProductPriceByProductId(@Param("id") Long id);
     List<Product> findAllByIdIn(List<Long> ids);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+                UPDATE products 
+                SET stock = stock - :quantity
+                WHERE id = :productId 
+                AND stock >= :quantity
+            """, nativeQuery = true)
+    int reduceStockIfAvailable(Long productId, Integer quantity);
 }

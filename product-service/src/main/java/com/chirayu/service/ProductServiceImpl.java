@@ -172,4 +172,12 @@ public class ProductServiceImpl implements ProductService {
                 .stream().map(productMapper::toDto)
                 .toList();
     }
+
+    @Override
+    public void reduceStockQuantityById(Long productId, Integer quantity) {
+        int updatedRow = productRepository.reduceStockIfAvailable(productId, quantity);
+        if (updatedRow == 0) {
+            throw new RuntimeException("Out of stock or product not found with ID: " + productId);
+        }
+    }
 }

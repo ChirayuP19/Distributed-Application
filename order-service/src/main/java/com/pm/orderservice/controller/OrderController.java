@@ -1,7 +1,6 @@
 package com.pm.orderservice.controller;
 
 import com.pm.orderservice.dto.OrderResponseDTO;
-import com.pm.orderservice.dto.OrderStatus;
 import com.pm.orderservice.dto.PlaceOrderRequestDTO;
 import com.pm.orderservice.dto.UpdateStatusRequest;
 import com.pm.orderservice.service.OrderService;
@@ -43,6 +42,13 @@ public class OrderController {
             @RequestParam(defaultValue = "id") String direction){
         log.info("Received request to get all orders");
         return orderService.getAllOrders(page,size,sortBy,direction);
+    }
+
+    @GetMapping("/{orderId}")
+    @ResponseStatus(HttpStatus.OK)
+    public OrderResponseDTO getOrderById(@PathVariable("orderId")Long orderId){
+        log.info("Received request to get order for ID:: {}",orderId);
+        return orderService.getOrderById(orderId);
     }
 
 }

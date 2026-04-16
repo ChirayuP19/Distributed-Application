@@ -60,7 +60,7 @@ public class ProductController {
 
     @PostMapping("/upload-file")
     @ResponseStatus(HttpStatus.CREATED)
-    public String uploadPorudctsViaFile(@RequestParam("file")MultipartFile file){
+    public String uploadProductViaFile(@RequestParam("file")MultipartFile file){
 
         productService.saveProductsFromFile(file);
         return "File uploaded and data saved successfully!";
@@ -82,5 +82,12 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     public List<ProductResponseDto> findAllByIds(@RequestBody List<Long> ids){
         return productService.getProductsByIds(ids);
+    }
+
+    @PostMapping("/quantity-update/{productId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void reduceStockQuantity(@PathVariable("productId") Long productId,
+                                    @RequestParam Integer quantity){
+        productService.reduceStockQuantityById(productId,quantity);
     }
 }

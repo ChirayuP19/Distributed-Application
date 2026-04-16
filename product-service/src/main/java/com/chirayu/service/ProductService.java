@@ -22,4 +22,5 @@ public interface ProductService {
     Boolean isExists(Long productId);
     BigDecimal getProductPriceById(Long productId);
     List<ProductResponseDto> getProductsByIds(List<Long> productIds);
+    void reduceStockQuantityById(Long productId, Integer quantity);
 }

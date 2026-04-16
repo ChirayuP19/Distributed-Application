@@ -2,7 +2,6 @@ package com.pm.orderservice.feignClients;
 
 import com.pm.orderservice.dto.ProductResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,10 +17,13 @@ public interface ProductFeignClient {
      BigDecimal productPriceById(@PathVariable("productId")Long productId);
 
     @GetMapping("/{productId}")
-    @ResponseStatus(HttpStatus.OK)
      ProductResponseDto findById(@PathVariable("productId") Long productId);
 
     @PostMapping("/batch")
     List<ProductResponseDto> findAllByIds(@RequestBody List<Long> ids);
+
+    @PostMapping("/quantity-update/{productId}")
+     void reduceStockQuantity(@PathVariable("productId") Long productId,
+                                    @RequestParam Integer quantity);
 
 }

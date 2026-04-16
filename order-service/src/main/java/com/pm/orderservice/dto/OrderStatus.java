@@ -11,4 +11,7 @@ public enum OrderStatus {
     SHIPPING_CANCELED,
     WAITING_FOR_DELIVERY,
     IN_PROGRESS,
+    PAID,
+    PAYMENT_FAILED,
+    PAYMENT_CANCELED,
 }

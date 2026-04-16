@@ -5,13 +5,15 @@ import com.pm.orderservice.dto.OrderStatus;
 import com.pm.orderservice.dto.PlaceOrderRequestDTO;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
 
 public interface OrderService {
 
     OrderResponseDTO placeOrder(PlaceOrderRequestDTO placeOrderRequestDTO);
 
-    OrderResponseDTO updateStatus(Long orderId, OrderStatus orderStatus);
+    OrderResponseDTO updateStatus(Long orderId, OrderStatus oderStatus);
 
     Page<OrderResponseDTO> getAllOrders(int page, int size, String sortBy, String direction);
+
+    OrderResponseDTO getOrderById(Long orderId);
 }
+
