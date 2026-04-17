@@ -12,6 +12,7 @@ import com.chirayu.repository.CategoryRepository;
 import com.chirayu.repository.ProductRepository;
 import com.opencsv.CSVReader;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
@@ -41,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable(value = "product",key = "#productId")
     public ProductResponseDto findByProductId(Long productId) {
+        log.info("find product by ID {}", productId);
         return productRepository.findById(productId)
                 .map(this::toDtoResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID:: " + productId));
@@ -60,6 +63,7 @@ public class ProductServiceImpl implements ProductService {
         Product productEntity = productMapper.toProductEntity(requestDto);
         productEntity.setCategory(category);
         Product saveProduct = productRepository.save(productEntity);
+        log.info("Saved product with id:{}", saveProduct.getId());
         return productMapper.toProduct(saveProduct);
     }
 
@@ -81,6 +85,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStock(product.getStock() + productUpdateDto.getStock());
         product.setUpdateAt(LocalDateTime.now());
         Product updatedProduct = productRepository.save(product);
+        log.info("Updated product with id:{}", updatedProduct.getId());
         return productMapper.toProduct(updatedProduct);
     }
 
@@ -116,9 +121,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         product.setUpdateAt(LocalDateTime.now());
-
         Product savedProduct = productRepository.save(product);
-
         return productMapper.toProduct(savedProduct);
     }
 
@@ -128,6 +131,7 @@ public class ProductServiceImpl implements ProductService {
                 : Sort.by(sortBy).descending();
         Pageable pageable= PageRequest.of(page,size,sort);
         Page<Product> productPage = productRepository.findAll(pageable);
+        log.info("Found {} products", productPage.getTotalElements());
         return productPage;
     }
 
@@ -162,6 +166,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Boolean isExists(Long productId) {
+        log.info("Checking if product with id:{}", productId);
         return productRepository.findById(productId).isPresent();
     }
 
@@ -180,8 +185,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void reduceStockQuantityById(Long productId, Integer quantity) {
         int updatedRow = productRepository.reduceStockIfAvailable(productId, quantity);
+        log.info("reduces product quantity with id:{}", productId);
         if (updatedRow == 0) {
-            throw new RuntimeException("Out of stock or product not found with ID: " + productId);
+            throw new IllegalArgumentException("Out of stock or product not found with ID: " + productId);
         }
     }
 

@@ -13,6 +13,7 @@ import com.chirayu.models.User;
 import com.chirayu.repository.CredentialRepository;
 import com.chirayu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -41,6 +43,7 @@ public class UserServiceImpl implements UserService {
         credential.setUserId(saveUser.getUserId());
         Credential saveCredential = credentialRepository.save(credential);
         saveUser.setCredentialId(saveCredential.getCredentialId());
+        log.info("save user {}", user.getEmail());
         userRepository.save(saveUser);
         return userMapper.toDto(saveUser);
     }
@@ -48,6 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable(value = "user", key = "#userID")
     public UserDto findById(String userID) {
+        log.info("find user by userID {}", userID);
         return userRepository.findById(userID)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID:: " + userID));
@@ -60,7 +64,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found with ID:: " + userId));
-
+        log.info("update user {}", user.getEmail());
         Credential credential = credentialRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credential not found for userID:: " + userId));
 
@@ -100,6 +104,7 @@ public class UserServiceImpl implements UserService {
     public void delete(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User is not found with ID:: " + userId));
+        log.info("delete user {}", user.getEmail());
         userRepository.delete(user);
     }
 
