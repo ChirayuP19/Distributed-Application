@@ -9,6 +9,7 @@ import com.chirayu.feignclients.ProductFeignClient;
 import com.chirayu.feignclients.UserFeignClient;
 import com.chirayu.repositoty.CartItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CartItemServiceImpl implements CartItemService {
 
@@ -29,6 +31,8 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public CartItemResponseDto addToCart(CartItemRequestDto requestDto) {
+        log.info("Add to cart request received | userId={} productId={} quantity={}",
+                requestDto.getUserId(), requestDto.getProductId(), requestDto.getQuantity());
         Boolean userExistById = userFeignClient.existById(requestDto.getUserId());
         if (Boolean.FALSE.equals(userExistById))
             throw new UserNotFoundException("User does not exists in Database with given ID:: "+requestDto.getUserId());
@@ -47,11 +51,14 @@ public class CartItemServiceImpl implements CartItemService {
 
         }
         savedItem = cartItemRepository.save(cartItem);
+        log.info("Cart item saved successfully | cartItemId={} userId={} productId={}",
+                savedItem.getId(), savedItem.getUserId(), savedItem.getProductId());
         return mapToResponseDto(savedItem);
     }
 
     @Override
     public List<CartItemResponseDto> getUserCart(String userId) {
+        log.info("User cart request received | userId={} ", userId);
         return cartItemRepository.findByUserId(userId)
                 .stream().map(this::mapToResponseDto)
                 .toList();
@@ -76,12 +83,14 @@ public class CartItemServiceImpl implements CartItemService {
         cartItem.setQuantity(cartItem.getQuantity() + newQuantity);
         cartItem.setUpdatedAt(LocalDateTime.now());
         CartItem dbCart = cartItemRepository.save(cartItem);
+        log.info("update quantity of product {}", dbCart.getProductId());
         return mapToResponseDto(dbCart);
     }
 
     @Override
     public void clearCart(String userId) {
         List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
+        log.info("clear cart items for user {}", userId);
         cartItemRepository.deleteAll(cartItems);
 
     }
