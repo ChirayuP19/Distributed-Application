@@ -1,14 +1,12 @@
 package com.pm.payment.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserDto {
     private String userId;
     private String firstName;
@@ -16,4 +14,5 @@ public class UserDto {
     private String emailAddress;
     private String phone;
     private String credentialId;
+    private String errorMessage;
 }
