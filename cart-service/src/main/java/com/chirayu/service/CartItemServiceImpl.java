@@ -6,7 +6,6 @@ import com.chirayu.entity.CartItem;
 import com.chirayu.exception.ProductNotFoundException;
 import com.chirayu.exception.UserNotFoundException;
 import com.chirayu.feignclients.ProductFeignClient;
-import com.chirayu.feignclients.UserFeignClient;
 import com.chirayu.repositoty.CartItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +25,18 @@ import java.util.Optional;
 public class CartItemServiceImpl implements CartItemService {
 
     private final CartItemRepository cartItemRepository;
-    private final UserFeignClient userFeignClient;
+    private final UserIntegrationService userIntigrationService;
     private final ProductFeignClient productFeignClient;
+    private final ProductIntegrationService productIntigrationService;
 
     @Override
     public CartItemResponseDto addToCart(CartItemRequestDto requestDto) {
         log.info("Add to cart request received | userId={} productId={} quantity={}",
                 requestDto.getUserId(), requestDto.getProductId(), requestDto.getQuantity());
-        Boolean userExistById = userFeignClient.existById(requestDto.getUserId());
+        Boolean userExistById = userIntigrationService.fetchUserById(requestDto);
         if (Boolean.FALSE.equals(userExistById))
             throw new UserNotFoundException("User does not exists in Database with given ID:: "+requestDto.getUserId());
-        Boolean existById = productFeignClient.isExistById(requestDto.getProductId());
+        Boolean existById = productIntigrationService.productFetch(requestDto);
         if(Boolean.FALSE.equals(existById))
             throw new ProductNotFoundException("Product does not exists in Database");
         Optional<CartItem> existingItem = cartItemRepository.findByUserIdAndProductId(requestDto.getUserId(), requestDto.getProductId());

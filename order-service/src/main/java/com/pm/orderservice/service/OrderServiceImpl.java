@@ -1,6 +1,6 @@
 package com.pm.orderservice.service;
 
-import com.pm.orderservice.OrderRepository;
+import com.pm.orderservice.repository.OrderRepository;
 import com.pm.orderservice.dto.*;
 import com.pm.orderservice.exception.UserNotFoundException;
 import com.pm.orderservice.feignClients.CartItemFeignClient;

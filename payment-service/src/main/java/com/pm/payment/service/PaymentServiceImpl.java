@@ -2,27 +2,29 @@ package com.pm.payment.service;
 
 import com.pm.payment.dto.*;
 import com.pm.payment.feignclients.OrderClient;
-import com.pm.payment.feignclients.UserFeignClient;
 import com.pm.payment.model.Payment;
 import com.pm.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderClient orderClient;
-    private final UserFeignClient userFeignClient;
+    private final UserIntegrationService userIntegrationService;
+    private final OrderIntegrationService orderIntegrationService;
 
     @Override
     public PaymentResponseDTO pay(PaymentRequestDTO requestDTO) {
-        OrderResponseDTO order = orderClient.getOrderById(requestDTO.getOrderId());
-        UserDto userDto = userFeignClient.findById(requestDTO.getUserId());
-        if(order == null  || userDto == null) {
+        OrderResponseDTO order = orderIntegrationService.fetchOrder(requestDTO);
+        UserDto userDto = userIntegrationService.fetchUser(requestDTO);
+        if (order == null || userDto == null) {
             throw new IllegalArgumentException("User or Order Id is not found");
         }
         if (!order.getUserId().equals(requestDTO.getUserId())) {
@@ -47,7 +49,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
         return toDto(saved);
     }
-    private PaymentResponseDTO toDto(Payment payment){
+
+    private PaymentResponseDTO toDto(Payment payment) {
         return PaymentResponseDTO.builder()
                 .orderId(payment.getOrderId())
                 .paymentId(payment.getId())
