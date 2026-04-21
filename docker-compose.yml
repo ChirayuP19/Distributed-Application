@@ -46,7 +46,6 @@ services:
     networks:
       - custom-bridge
 
-
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin_panel
@@ -58,6 +57,15 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+    networks:
+      - custom-bridge
+
+  eureka:
+    image: chirayupatel19/eureka-service-distibrutedapp:1.0
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
     networks:
       - custom-bridge
 

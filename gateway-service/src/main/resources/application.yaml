@@ -1,8 +1,7 @@
 spring:
   application:
-    name: user-service
+    name: gateway-service
   profiles:
     active: dev
 server:
-  port: 8050
-
+  port: 8058
